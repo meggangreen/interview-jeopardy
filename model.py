@@ -51,8 +51,8 @@ class Question(db.Model):
     #                        nullable=False)
     category = db.relationship('Category',
                                backref=db.backref('questions'))
-    subjects = db.relationship('Subject',
-                               backref=db.backref('questions'))
+    # subjects = db.relationship('Subject',
+    #                            backref=db.backref('questions'))
 
     def __repr__(self):
         return ("<Question id={} category={} subject={} difficulty={}\n" +
