@@ -4,6 +4,35 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+### Classes ###
+
+class Category(db.Model):
+    """ Categories model
+
+        The rows for Behavioral, Coding, Theoretical are filled in the function
+        seed_categories.
+
+    """
+
+    __tablename__ = 'categories'
+
+    c_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    title = db.Column(db.Text, nullable=False)
+
+
+class Subject(db.Model):
+    """ Subjects model
+
+        The rows are filled in the function 'seed_subjects'.
+
+    """
+
+    __tablename__ = 'subjects'
+
+    s_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    title = db.Column(db.Text, nullable=False)
+
+
 class Question(db.Model):
     """ Questions model """
 
@@ -11,10 +40,8 @@ class Question(db.Model):
 
     q_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     text = db.Column(db.Text, nullable=False)
-    difficulty = db.Column(db.Enum('1', '2', '3'), default='2',
-                           index=True,
-                           nullable=False)
-    category_id = db.Column(db.String(1),
+    difficulty = db.Column(db.Integer, nullable=False)  # 1, 2, 3
+    category_id = db.Column(db.Integer,
                             db.ForeignKey('categories.c_id'),
                             index=True,
                             nullable=False)
@@ -23,23 +50,23 @@ class Question(db.Model):
                            index=True,
                            nullable=False)
     category = db.relationship('Category',
-                               backref=db.backref('questions', order_by='q_id'))
+                               backref=db.backref('questions')) #, order_by='q_id'))
     subjects = db.relationship('Subject',
-                               backref=db.backref('questions', order_by='q_id'))
+                               backref=db.backref('questions')) #, order_by='q_id'))
 
     def __repr__(self):
-        return ("""<Question id={} category={} subject={} difficulty={}
-                             '{}'""").format(self.q_id,
-                                             self.category.title,
-                                             self.subject.title,
-                                             self.difficulty,
-                                             self.text[:50])
+        return ("<Question id={} category={} subject={} difficulty={}\n" +
+                " " * 10 + "text: '{}'>").format(self.q_id,
+                                                 '', # self.category.title,
+                                                 '', # self.subject.title,
+                                                 self.difficulty,
+                                                 self.text[:50])
 
     @classmethod
     def do_something(cls):
         pass
 
-    # category  # Behavioral, Coding, Theoretical
+    # category  #
     # subject
 
 
