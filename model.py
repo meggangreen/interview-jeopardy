@@ -45,20 +45,20 @@ class Question(db.Model):
                             db.ForeignKey('categories.c_id'),
                             index=True,
                             nullable=False)
-    subject_id = db.Column(db.Integer,
-                           db.ForeignKey('subjects.s_id'),
-                           index=True,
-                           nullable=False)
+    # subject_id = db.Column(db.Integer,
+    #                        db.ForeignKey('subjects.s_id'),
+    #                        index=True,
+    #                        nullable=False)
     category = db.relationship('Category',
-                               backref=db.backref('questions')) #, order_by='q_id'))
+                               backref=db.backref('questions'))
     subjects = db.relationship('Subject',
-                               backref=db.backref('questions')) #, order_by='q_id'))
+                               backref=db.backref('questions'))
 
     def __repr__(self):
         return ("<Question id={} category={} subject={} difficulty={}\n" +
                 " " * 10 + "text: '{}'>").format(self.q_id,
-                                                 '', # self.category.title,
-                                                 '', # self.subject.title,
+                                                 self.category.title,
+                                                 self.subjects,
                                                  self.difficulty,
                                                  self.text[:50])
 
