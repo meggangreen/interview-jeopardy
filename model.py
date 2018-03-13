@@ -10,6 +10,8 @@ db = SQLAlchemy()
 class Base(db.Model):
     """ Holds repeated class methods for the DB tables. """
 
+    __abstract__ = True
+
     @classmethod
     def is_in_db(cls, idn=None):
         """ Checks if record is in DB. """
@@ -20,7 +22,15 @@ class Base(db.Model):
         return cls.query.get(idn) is not None
 
 
-class Subject(db.Model):
+    @classmethod
+    def get_record_object(cls, idn):
+        """ Retrieve record object from DB. """
+
+        if cls.is_in_db(idn) is True:
+            return cls.query.get(idn)
+
+
+class Subject(Base):
     """ Subjects model; filled in the function 'seed_subjects'. """
 
     __tablename__ = 'subjects'
@@ -35,7 +45,7 @@ class Subject(db.Model):
         return ('<Subject "{}">').format(self.title)
 
 
-class Q_Subj(db.Model):
+class Q_Subj(Base):
     """ Association table to manage many-to-many relationship between Subjects
         and Questions.
 
@@ -55,7 +65,7 @@ class Q_Subj(db.Model):
         return ('<Q_Subj s_id={} q_id={}>').format(self.s_id, self.q_id)
 
 
-class Question(db.Model):
+class Question(Base):
     """ Questions model """
 
     __tablename__ = 'questions'
@@ -82,7 +92,7 @@ class Question(db.Model):
     # subject
 
 
-class User(db.Model):
+class User(Base):
     """ Users model. Users have IDs and scores. We don't need much on them. """
 
     __tablename__ = 'users'
@@ -98,23 +108,13 @@ class User(db.Model):
 
 
     @classmethod
-    def is_user(cls, u_id=None):
-        """ Checks if user id is in DB. """
-
-        if not u_id:
-            return None
-
-        return 0 < len(cls.query.filter(cls.u_id == u_id).all())
-
-
-    @classmethod
     def create_user(cls, u_id):
         """ Add new user to the DB. """
 
-        if cls.is_user(u_id) is True:
+        if cls.is_in_db(u_id) is True:
             print "The user '{}' already exists.".format(u_id)
             return None
-        elif cls.is_user(u_id) is False:
+        elif cls.is_in_db(u_id) is False:
             new_user = User(u_id)
             db.session.add(new_user)
             db.session.commit()
@@ -122,21 +122,13 @@ class User(db.Model):
             return new_user
 
 
-    @classmethod
-    def get_user(cls, u_id):
-        """ Retrieve User object from DB. """
-
-        if cls.is_user(u_id) is True:
-            return cls.query.get(u_id)
-
-
     def change_user_id(self, new_id=None):
         """ Change selected u_id in DB. """
 
-        if User.is_user(new_id) is True:
+        if User.is_in_db(new_id) is True:
             print "The user '{}' already exists.".format(new_id)
             return None
-        elif User.is_user(new_id) is False:
+        elif User.is_in_db(new_id) is False:
             self.u_id = new_id
             db.session.add(self)
             db.session.commit()
@@ -144,7 +136,7 @@ class User(db.Model):
             return None
 
 
-class Scores(db.Model):
+class Scores(Base):
     """ Scores model. Holds the various point levels (0 to 5) a user has scored
         on a specific question. The scores are stored text of a comma-separated
         list and kept in chronologogical order of least-to-most recent.
