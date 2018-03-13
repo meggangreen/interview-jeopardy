@@ -19,7 +19,7 @@ class Base(db.Model):
         if not idn:
             return None
 
-        return cls.query.get(idn) is not None
+        return cls.query.get(idn) is not None  # True/False
 
 
     @classmethod
@@ -74,7 +74,7 @@ class Question(Base):
     title = db.Column(db.Text, nullable=False)
     text = db.Column(db.Text, nullable=False)
     difficulty = db.Column(db.Integer, nullable=False, default=2)  # 1, 2, 3
-    durations = db.Column(db.Text, nullable=False, default="120,")
+    durations = db.Column(db.Text, nullable=False, default="180,")  # '120,60,'
     category = db.Column(db.String(1), nullable=False)  # B, T, C
     subjects = db.relationship('Subject',
                                order_by='Subject.s_id',
@@ -163,7 +163,10 @@ class Scores(Base):
 
     @classmethod
     def add_new_points(cls, u_id=None, q_id=None, new_points=None):
-        """ Add new points value for user-question pair. """
+        """ Add new points value for user-question pair. Inserts new u-q pair
+            into DB if necessary.
+
+        """
 
         if not u_id or not q_id or not new_points or new_points not in range(6):
             return None
