@@ -7,6 +7,19 @@ db = SQLAlchemy()
 ################################################################################
 ### Classes ###
 
+class Base(db.Model):
+    """ Holds repeated class methods for the DB tables. """
+
+    @classmethod
+    def is_in_db(cls, idn=None):
+        """ Checks if record is in DB. """
+
+        if not idn:
+            return None
+
+        return cls.query.get(idn) is not None
+
+
 class Subject(db.Model):
     """ Subjects model; filled in the function 'seed_subjects'. """
 
