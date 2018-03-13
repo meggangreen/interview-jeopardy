@@ -13,10 +13,13 @@ class Subject(db.Model):
     __tablename__ = 'subjects'
 
     s_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    title = db.Column(db.Text, nullable=False)
+    title = db.Column(db.Text, nullable=False, unique=True)
+
+    def __init__(self, title):
+        self.title = title
 
     def __repr__(self):
-        return ('<Subject id={} "{}">').format(self.s_id, self.title)
+        return ('<Subject "{}">').format(self.title)
 
 
 class Q_Subj(db.Model):
@@ -30,6 +33,10 @@ class Q_Subj(db.Model):
     qs_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     s_id = db.Column(db.Integer, db.ForeignKey('subjects.s_id'), nullable=False)
     q_id = db.Column(db.Integer, db.ForeignKey('questions.q_id'), nullable=False)
+
+    def __init__(self, s_id, q_id):
+        self.s_id = s_id
+        self.q_id = q_id
 
     def __repr__(self):
         return ('<Q_Subj s_id={} q_id={}>').format(self.s_id, self.q_id)
@@ -98,6 +105,7 @@ class User(db.Model):
             new_user = User(u_id)
             db.session.add(new_user)
             db.session.commit()
+            print "New user '{}' created!".format(u_id)
             return new_user
 
 
