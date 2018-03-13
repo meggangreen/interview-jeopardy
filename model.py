@@ -13,21 +13,33 @@ class Base(db.Model):
     __abstract__ = True
 
     @classmethod
-    def is_in_db(cls, idn=None):
+    def is_in_db(cls, search_id=None):
         """ Checks if record is in DB. """
 
-        if not idn:
+        if not search_id:
             return None
 
-        return cls.query.get(idn) is not None  # True/False
+        return cls.query.get(search_id) is not None  # True/False
 
 
     @classmethod
-    def get_record_object(cls, idn):
+    def get_record_object(cls, search_id):
         """ Retrieve record object from DB. """
 
-        if cls.is_in_db(idn) is True:
-            return cls.query.get(idn)
+        if cls.is_in_db(search_id) is True:
+            return cls.query.get(search_id)
+
+
+    @classmethod
+    def create_new_record(cls, **kwargs):
+        """ Insert new record object into the DB. """
+
+        if is_in_db(cls, search_id) is False:
+            new_item = cls(**kwargs)
+            db.session.add(new_item)
+            db.session.commit()
+
+        return new_item
 
 
 class Subject(Base):
@@ -35,14 +47,22 @@ class Subject(Base):
 
     __tablename__ = 'subjects'
 
-    s_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    title = db.Column(db.Text, nullable=False, unique=True)
+    s_id = db.Column(db.Text, primary_key=True)
 
-    def __init__(self, title):
-        self.title = title
+    def __init__(self, s_id):
+        self.s_id = s_id
 
     def __repr__(self):
-        return ('<Subject "{}">').format(self.title)
+        return ('<Subject "{}">').format(self.s_id)
+
+
+    @classmethod
+    def create_new_record(cls, s_id):
+        """  """
+
+        super(Subject, cls).create_new_record()
+
+        pass
 
 
 class Q_Subj(Base):
@@ -54,7 +74,7 @@ class Q_Subj(Base):
     __tablename__ = 'qs_subjs'
 
     qs_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    s_id = db.Column(db.Integer, db.ForeignKey('subjects.s_id'), nullable=False)
+    s_id = db.Column(db.Text, db.ForeignKey('subjects.s_id'), nullable=False)
     q_id = db.Column(db.Integer, db.ForeignKey('questions.q_id'), nullable=False)
 
     def __init__(self, s_id, q_id):
@@ -115,9 +135,6 @@ class User(Base):
             print "The user '{}' already exists.".format(u_id)
             return None
         elif cls.is_in_db(u_id) is False:
-            new_user = User(u_id)
-            db.session.add(new_user)
-            db.session.commit()
             print "New user '{}' created!".format(u_id)
             return new_user
 
