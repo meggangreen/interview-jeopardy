@@ -13,33 +13,29 @@ class Base(db.Model):
     __abstract__ = True
 
     @classmethod
-    def is_in_db(cls, search_id=None):
-        """ Checks if record is in DB. """
+    def get_record_objects(cls, col=None, val=None):
+        """ Given 'col' as column name and 'val' as entire and exact value to
+            search, checks if any matchin record is in DB. Returns list of objs.
 
-        if not search_id:
+        """
+
+        if not col or not val:
             return None
 
-        return cls.query.get(search_id) is not None  # True/False
+        return cls.query.filter(cls.__table__.columns.get(col) == val).all()
 
 
     @classmethod
-    def get_record_object(cls, search_id):
-        """ Retrieve record object from DB. """
+    def create_new_record(cls, col, val, **kwargs):
+        """ Inserts new record into the DB. Returns new object or None. """
 
-        if cls.is_in_db(search_id) is True:
-            return cls.query.get(search_id)
-
-
-    @classmethod
-    def create_new_record(cls, **kwargs):
-        """ Insert new record object into the DB. """
-
-        if is_in_db(cls, search_id) is False:
+        if len(cls.get_record_objects(col, val)) == 0:
             new_item = cls(**kwargs)
             db.session.add(new_item)
             db.session.commit()
-
-        return new_item
+            return new_item
+        else:
+            return None
 
 
 class Subject(Base):
@@ -128,15 +124,18 @@ class User(Base):
 
 
     @classmethod
-    def create_user(cls, u_id):
+    def create_new_record(cls, u_id):
         """ Add new user to the DB. """
 
-        if cls.is_in_db(u_id) is True:
-            print "The user '{}' already exists.".format(u_id)
+        record = super(User, cls).create_new_record(col='u_id',
+                                                    val=u_id,
+                                                    u_id=u_id)
+        if not record:
+            print "User '{}' already exists.".format(u_id)
             return None
-        elif cls.is_in_db(u_id) is False:
+        else:
             print "New user '{}' created!".format(u_id)
-            return new_user
+            return record
 
 
     def change_user_id(self, new_id=None):
