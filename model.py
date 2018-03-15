@@ -57,6 +57,9 @@ class Subject(Base):
     def create(cls, title):
         """ Inserts new record into the DB. Returns new object or None. """
 
+        if not title:
+            return None
+
         record = super(Subject, cls).create(col='title',
                                             val=title,
                                             title=title)
@@ -341,11 +344,23 @@ def connect_to_db(app):
 def seed_data():
     """ Seed data """
 
-    # subjects first (qs dependent) - brainstorm list with amsowie
+    seed_subjects()
     # questions with qs_subjs
     # users: add 'default'
 
     pass
+
+
+def seed_subjects():
+    """ Reads subjects in from path. Original list brainstormed with amsowie. """
+
+    with open('data/subjects.txt') as f:
+        subjects = f.read()
+
+    for subj in subjects:
+        Subject.create(subj.strip())
+
+    print "\n-- All subjects seeded --\n"
 
 
 if __name__ == '__main__':
