@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 ################################################################################
-### Classes ###
+ ### Classes ###
 
 class Base(db.Model):
     """ Holds repeated class methods for the DB tables. """
@@ -105,17 +105,19 @@ class Q_Subj(Base):
 
     @classmethod
     def create(cls, q_id, s_id):
-        """ Inserts new record into the DB. Returns new object or None. """
+        """ Inserts new record into the DB. Returns None. """
 
         qs_id = int(str(s_id) + str(q_id))
         record = super(Q_Subj, cls).create(col='qs_id',
                                            val=qs_id,
-                                           qs_id=qs_id)
+                                           # qs_id=qs_id,
+                                           q_id=q_id,
+                                           s_id=s_id)
         if not record:
             print "Question {} + Subject {} already linked.".format(q_id, s_id)
             return None
         else:
-            print "Question {} + Subject linked!".format(q_id, s_id)
+            print "Question {} + Subject {} linked!".format(q_id, s_id)
             return None
 
 
@@ -138,23 +140,23 @@ class Question(Base):
     def __init__(self, title, text, **kwargs):
         self.title = title
         self.text = text
-        self.difficulty = difficulty if difficulty else 2
-        self.durations = durations if durations else "180,"
-        self.category = category if category else "T"
+        self.difficulty = kwargs.get('difficulty', 2)
+        self.durations = kwargs.get('durations', "180,")
+        self.category = kwargs.get('category', "T")
 
     def __repr__(self):
         return ('<Question id={} "{}">').format(self.q_id, self.title[:60])
 
+
     @classmethod
     def create(cls, title, text, **kwargs):
-        """  """
+        """ Inserts new record into the DB. Returns new object or None. """
 
         record = super(Question, cls).create(col='title',
                                              val=title,
+                                             title=title,
                                              text=text,
-                                             difficulty=difficulty,
-                                             durations=durations,
-                                             category=category)
+                                             **kwargs)
         if not record:
             print "Question '{}' already exists.".format(title[:50])
             return None
@@ -183,16 +185,18 @@ class Question(Base):
         for new_subj in new_subjs:
 
             # Get Subject from DB
-            subj = Subject.get_record_objects(col='title', val=new_subj)[0]
+            subj = Subject.get_record_objects(col='title', val=new_subj)
             if not subj:
-                y_or_n = rawinput("Subject '{}' does not exist. " +
-                                  "Do you want to add it? (y/n) "
-                                  .format(new_subj))
+                y_or_n = raw_input("Subject '{}' does not exist. "
+                                   .format(new_subj) +
+                                   "Do you want to add it? (y/n) ")
                 if y_or_n.lower() == 'y':
-                    subj = Subject.create(title)
+                    subj = Subject.create(new_subj)
                 else:
                     print "Current subject cannot be added; trying the next."
                     continue
+            else:
+                subj = subj[0]
 
             Q_Subj.create(self.q_id, subj.s_id)
 
@@ -205,7 +209,7 @@ class User(Base):
     __tablename__ = 'users'
 
     u_id = db.Column(db.Text, primary_key=True)
-    scores = db.relationship('Scores')
+    scores = db.relationship('Score')
 
     def __init__(self, u_id):
         self.u_id = u_id
@@ -243,8 +247,8 @@ class User(Base):
             return None
 
 
-class Scores(Base):
-    """ Scores model. Holds the various point levels (0 to 5) a user has scored
+class Score(Base):
+    """ Score model. Holds the various point levels (0 to 5) a user has scored
         on a specific question. The scores are stored text of a comma-separated
         list and kept in chronologogical order of least-to-most recent.
         Eg: u_id 4291 + q_id 375 >> '2,2,3,4,4,3,5,'
@@ -255,12 +259,13 @@ class Scores(Base):
 
     __tablename__ = 'scores'
 
-    score_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    score_id = db.Column(db.Text, primary_key=True)
     u_id = db.Column(db.Text, db.ForeignKey('users.u_id'), nullable=False)
     q_id = db.Column(db.Integer, db.ForeignKey('questions.q_id'), nullable=False)
     points = db.Column(db.Text, nullable=False, default='')  # '0,1,2,3,4,5,'
 
     def __init__(self, u_id, q_id):
+        self.score_id = make_score_id(u_id, q_id)
         self.u_id = u_id
         self.q_id = q_id
         self.points = ''
@@ -268,27 +273,60 @@ class Scores(Base):
     def __repr__(self):
         return ('<Score u_id={} q_id={}>').format(self.u_id, self.q_id)
 
+
     @classmethod
-    def add_new_points(cls, u_id=None, q_id=None, new_points=None):
+    def create(cls, u_id, q_id):
+        """ Inserts new record into the DB. Returns new object or None. """
+
+        score_id = make_score_id(u_id, q_id)
+        record = super(Score, cls).create(col='score_id',
+                                          val=score_id,
+                                          u_id=u_id,
+                                          q_id=q_id)
+        if not record:
+            # print "UQ pair '{}' already exists.".format(score_id)
+            return None
+        else:
+            # print "UQ pair '{}' created!".format(score_id)
+            return record
+
+
+    @classmethod
+    def add_points(cls, u_id=None, q_id=None, new_points=None):
         """ Add new points value for user-question pair. Inserts new u-q pair
             into DB if necessary.
 
         """
 
-        if not u_id or not q_id or not new_points or new_points not in range(6):
+        if not u_id or not q_id or new_points not in range(6):
             return None
 
-        score = cls.query.filter(cls.u_id == u_id, cls.q_id == q_id).first()
+        score_id = make_score_id(u_id, q_id)
+        score = cls.get_record_objects(col='score_id', val=score_id)
+
         if not score:
-            score = Score(u_id=u_id, q_id=q_id)
+            score = cls.create(u_id=u_id, q_id=q_id)
+        else:
+            score = score[0]
 
         score.points += (str(new_points) + ",")
         db.session.add(score)
         db.session.commit()
+        print "Scores updated!"
+
+        return None
 
 
 ################################################################################
-### Functions ###
+ ### Helper Functions ###
+
+def make_score_id(u_id, q_id):
+    """ Makes score id for all functions. """
+    return u_id + '--' + str(q_id)
+
+
+################################################################################
+ ### App Functions ###
 
 def connect_to_db(app):
     """ Connect the database to a Flask app. """
