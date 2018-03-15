@@ -362,16 +362,17 @@ def seed_subjects():
     """ Reads subjects in from path. Original list brainstormed with amsowie. """
 
     with open('data/subjects.txt') as f:
-        subjects = f.read()
+        subjects = f.readlines()
 
     for subj in subjects:
         Subject.create(subj.strip())
 
-    print "\n-- All subjects seeded --\n"
+    print "\n-- Finished seeding subjects. --\n"
 
     return None
 
 
+# Eventually move this to the control files
 if __name__ == '__main__':
 
     # Start Flask app
@@ -384,4 +385,5 @@ if __name__ == '__main__':
 
     # Create and seed database, if necessary
     db.create_all()  # does nothing to already created tables
-    # seed_data()
+    # seed_data()  # first check for empties
+    # user welcome / creation
