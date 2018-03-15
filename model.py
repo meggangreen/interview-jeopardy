@@ -27,15 +27,26 @@ class Base(db.Model):
 
     @classmethod
     def create(cls, col, val, **kwargs):
-        """ Inserts new record into the DB. Returns new object or None. """
+        """ Inserts new record into the DB. Returns success/failure message and
+            new object or None.
 
-        if len(cls.get_record_objects(col, val)) == 0:
+        """
+
+        if not val:
+            print val
+            msg = "Cannot create {} with empty value. You submitted '{}'."
+            record = None
+        elif len(cls.get_record_objects(col, val)) == 0:
             new_item = cls(**kwargs)
             db.session.add(new_item)
             db.session.commit()
-            return new_item
+            msg = "New {} '{}' created!"
+            record = new_item
         else:
-            return None
+            msg = "{} '{}' already exists."
+            record = None
+
+        return (msg.format(cls.__name__, val), record)
 
 
 class Subject(Base):
@@ -55,20 +66,16 @@ class Subject(Base):
 
     @classmethod
     def create(cls, title):
-        """ Inserts new record into the DB. Returns new object or None. """
+        """ Inserts new record into the DB. Prints success/failure message.
+            Returns new object or None.
 
-        if not title:
-            return None
+        """
 
-        record = super(Subject, cls).create(col='title',
-                                            val=title,
-                                            title=title)
-        if not record:
-            print "Subject '{}' already exists.".format(title)
-            return None
-        else:
-            print "New subject '{}' created!".format(title)
-            return record
+        msg, record = super(Subject, cls).create(col='title',
+                                                 val=title,
+                                                 title=title)
+        print msg
+        return cls # record
 
 
     def edit(self, new_val=None):
@@ -98,7 +105,7 @@ class Q_Subj(Base):
     s_id = db.Column(db.Integer, db.ForeignKey('subjects.s_id'), nullable=False)
 
     def __init__(self, s_id, q_id):
-        self.qs_id = int(str(s_id) + str(q_id))
+        self.qs_id = make_qs_id(q_id, s_id)
         self.q_id = q_id
         self.s_id = s_id
 
@@ -108,20 +115,18 @@ class Q_Subj(Base):
 
     @classmethod
     def create(cls, q_id, s_id):
-        """ Inserts new record into the DB. Returns None. """
+        """ Inserts new record into the DB. Prints success/failure message.
+            Returns None.
 
-        qs_id = int(str(s_id) + str(q_id))
-        record = super(Q_Subj, cls).create(col='qs_id',
-                                           val=qs_id,
-                                           # qs_id=qs_id,
-                                           q_id=q_id,
-                                           s_id=s_id)
-        if not record:
-            print "Question {} + Subject {} already linked.".format(q_id, s_id)
-            return None
-        else:
-            print "Question {} + Subject {} linked!".format(q_id, s_id)
-            return None
+        """
+
+        qs_id = make_qs_id(q_id, s_id)
+        msg, record = super(Q_Subj, cls).create(col='qs_id',
+                                                val=qs_id,
+                                                q_id=q_id,
+                                                s_id=s_id)
+        print msg
+        return None  # should never need to return this record
 
 
 class Question(Base):
@@ -153,19 +158,18 @@ class Question(Base):
 
     @classmethod
     def create(cls, title, text, **kwargs):
-        """ Inserts new record into the DB. Returns new object or None. """
+        """ Inserts new record into the DB. Prints success/failure message.
+            Returns new object or None.
 
-        record = super(Question, cls).create(col='title',
-                                             val=title,
-                                             title=title,
-                                             text=text,
-                                             **kwargs)
-        if not record:
-            print "Question '{}' already exists.".format(title[:50])
-            return None
-        else:
-            print "Question '{}' created!".format(title[:50])
-            return record
+        """
+
+        msg, record = super(Question, cls).create(col='title',
+                                                  val=title,
+                                                  title=title,
+                                                  text=text,
+                                                  **kwargs)
+        print msg
+        return record
 
 
     def edit(self, new_val=None):
@@ -196,7 +200,7 @@ class Question(Base):
                 if y_or_n.lower() == 'y':
                     subj = Subject.create(new_subj)
                 else:
-                    print "Current subject cannot be added; trying the next."
+                    print "Cannot add current subject; trying the next."
                     continue
             else:
                 subj = subj[0]
@@ -223,17 +227,16 @@ class User(Base):
 
     @classmethod
     def create(cls, u_id):
-        """ Inserts new record into the DB. Returns new object or None. """
+        """ Inserts new record into the DB. Prints success/failure message.
+            Returns new object or None.
 
-        record = super(User, cls).create(col='u_id',
-                                         val=u_id,
-                                         u_id=u_id)
-        if not record:
-            print "User '{}' already exists.".format(u_id)
-            return None
-        else:
-            print "New user '{}' created!".format(u_id)
-            return record
+        """
+
+        msg, record = super(User, cls).create(col='u_id',
+                                              val=u_id,
+                                              u_id=u_id)
+        print msg
+        return record
 
 
     def edit(self, new_val=None):
@@ -279,19 +282,18 @@ class Score(Base):
 
     @classmethod
     def create(cls, u_id, q_id):
-        """ Inserts new record into the DB. Returns new object or None. """
+        """ Inserts new record into the DB. Doesn't print success/failure
+            message. Returns new object or None.
+
+        """
 
         score_id = make_score_id(u_id, q_id)
-        record = super(Score, cls).create(col='score_id',
-                                          val=score_id,
-                                          u_id=u_id,
-                                          q_id=q_id)
-        if not record:
-            # print "UQ pair '{}' already exists.".format(score_id)
-            return None
-        else:
-            # print "UQ pair '{}' created!".format(score_id)
-            return record
+        msg, record = super(Score, cls).create(col='score_id',
+                                               val=score_id,
+                                               u_id=u_id,
+                                               q_id=q_id)
+        # don't print msg
+        return record
 
 
     @classmethod
@@ -308,7 +310,7 @@ class Score(Base):
         score = cls.get_record_objects(col='score_id', val=score_id)
 
         if not score:
-            score = cls.create(u_id=u_id, q_id=q_id)
+            msg, score = cls.create(u_id=u_id, q_id=q_id)
         else:
             score = score[0]
 
@@ -322,6 +324,11 @@ class Score(Base):
 
 ################################################################################
  ### Helper Functions ###
+
+def make_qs_id(q_id, s_id):
+    """ Makes Q_Subj id for all functions. """
+    return int(str(q_id) + str(s_id))
+
 
 def make_score_id(u_id, q_id):
     """ Makes score id for all functions. """
@@ -348,7 +355,7 @@ def seed_data():
     # questions with qs_subjs
     # users: add 'default'
 
-    pass
+    return None
 
 
 def seed_subjects():
@@ -362,6 +369,8 @@ def seed_subjects():
 
     print "\n-- All subjects seeded --\n"
 
+    return None
+
 
 if __name__ == '__main__':
 
@@ -374,5 +383,5 @@ if __name__ == '__main__':
     print "\n\nConnected to DB.\n"
 
     # Create and seed database, if necessary
-    db.create_all()
+    db.create_all()  # does nothing to already created tables
     # seed_data()
