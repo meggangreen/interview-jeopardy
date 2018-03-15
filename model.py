@@ -336,7 +336,7 @@ def make_score_id(u_id, q_id):
 
 
 ################################################################################
- ### App Functions ###
+ ### Database Functions ###
 
 def connect_to_db(app):
     """ Connect the database to a Flask app. """
@@ -351,9 +351,10 @@ def connect_to_db(app):
 def seed_data():
     """ Seed data """
 
+    db.create_all()  # does nothing to already created tables
     seed_subjects()
     # questions with qs_subjs
-    # users: add 'default'
+    # users: add 'default'?
 
     return None
 
@@ -372,18 +373,12 @@ def seed_subjects():
     return None
 
 
-# Eventually move this to the control files
 if __name__ == '__main__':
 
     # Start Flask app
     from flask import Flask
     app = Flask(__name__)
 
-    # Work directly with DB
+    # Connect to DB
     connect_to_db(app)
-    print "\n\nConnected to DB.\n"
-
-    # Create and seed database, if necessary
-    db.create_all()  # does nothing to already created tables
-    # seed_data()  # first check for empties
-    # user welcome / creation
+    print "\n-- Working directly in database. Use Flask-SQLAlchemy syntax. --\n"
