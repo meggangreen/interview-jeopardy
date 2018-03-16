@@ -368,7 +368,11 @@ def seed_subjects():
 
 
 def seed_questions():
-    """ Reads all .txt files in the /data/questions directory. """
+    """ Reads all .txt files in the /data/questions directory.
+
+        Code sampled from http://stackabuse.com/python-list-files-in-a-directory/
+
+    """
 
     # Define the path
     q_dir = pathlib.Path('./data/questions')
