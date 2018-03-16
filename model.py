@@ -389,7 +389,13 @@ def seed_questions():
 def parse_question_file(q_file):
     """ Returns attrs dict and subjects list for making Question. """
 
-    pass
+    q_attrs_set = set(['TITLE',
+                       'TEXT',
+                       'DIFFICULTY',
+                       'DURATIONS',
+                       'CATEGORY',
+                       'ANSWER'])
+
     # return (q_attrs, q_subjs)
 
 
