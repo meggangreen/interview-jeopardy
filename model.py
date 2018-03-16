@@ -131,11 +131,12 @@ class Question(Base):
     __tablename__ = 'questions'
 
     q_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    title = db.Column(db.Text, nullable=False)
+    title = db.Column(db.Text, nullable=False, unique=True)
     text = db.Column(db.Text, nullable=False)
     difficulty = db.Column(db.Integer, nullable=False, default=2)  # 1, 2, 3
     durations = db.Column(db.Text, nullable=False, default="180,")  # '120,60,'
     category = db.Column(db.String(1), nullable=False, default="T")  # B, T, C
+    answer = db.Column(db.Text)
     subjects = db.relationship('Subject',
                                order_by='Subject.s_id',
                                secondary='qs_subjs',
@@ -147,6 +148,7 @@ class Question(Base):
         self.difficulty = kwargs.get('difficulty', 2)
         self.durations = kwargs.get('durations', "180,")
         self.category = kwargs.get('category', "T")
+        self.answer = kwargs.get('answer', None)
 
     def __repr__(self):
         return '<Question id={} "{}">'.format(self.q_id, self.title[:60])
