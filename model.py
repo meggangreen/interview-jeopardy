@@ -1,5 +1,4 @@
 """ ORM Models """
-# !! STILL IN PY 2.7 !! #
 
 from flask_sqlalchemy import SQLAlchemy
 
@@ -32,9 +31,8 @@ class Base(db.Model):
             new object or None.
 
         """
-
+        class_name = cls.__name__
         if not val:
-            print val
             msg = "Cannot create {} with empty value. You submitted '{}'."
             record = None
         elif len(cls.get_record_objects(col, val)) == 0:
@@ -44,10 +42,11 @@ class Base(db.Model):
             msg = "New {} '{}' created!"
             record = new_item
         else:
-            msg = "{} '{}' already exists."
+            msg = ("Welcome back!" if class_name == 'User'
+                   else "{} '{}' already exists.")
             record = None
 
-        return (msg.format(cls.__name__, val), record)
+        return (msg.format(class_name, val), record)
 
 
 class Subject(Base):
@@ -62,7 +61,7 @@ class Subject(Base):
         self.title = title
 
     def __repr__(self):
-        return ('<Subject "{}">').format(self.title)
+        return '<Subject "{}">'.format(self.title)
 
 
     @classmethod
@@ -72,24 +71,22 @@ class Subject(Base):
 
         """
 
-        msg, record = super(Subject, cls).create(col='title',
-                                                 val=title,
-                                                 title=title)
-        print msg
-        return cls # record
+        msg, record = super().create(col='title', val=title, title=title)
+        print(msg)
+        return record
 
 
     def edit(self, new_val=None):
         """ Change selected title in DB. """
 
         if len(Subject.get_record_objects(col='title', val=new_val)) > 0:
-            print "Subject '{}' already exists.".format(new_val)
+            print("Subject '{}' already exists.").format(new_val)
             return None
         else:
             self.title = new_val
             db.session.add(self)
             db.session.commit()
-            print "Subject text changed!"
+            print("Subject text changed!")
             return None
 
 
@@ -111,7 +108,7 @@ class Q_Subj(Base):
         self.s_id = s_id
 
     def __repr__(self):
-        return ('<Q_Subj q_id={} s_id={}>').format(self.q_id, self.s_id)
+        return '<Q_Subj q_id={} s_id={}>'.format(self.q_id, self.s_id)
 
 
     @classmethod
@@ -122,11 +119,9 @@ class Q_Subj(Base):
         """
 
         qs_id = make_qs_id(q_id, s_id)
-        msg, record = super(Q_Subj, cls).create(col='qs_id',
-                                                val=qs_id,
-                                                q_id=q_id,
-                                                s_id=s_id)
-        print msg
+        msg, record = super().create(col='qs_id', val=qs_id,
+                                     q_id=q_id, s_id=s_id)
+        print(msg)
         return None  # should never need to return this record
 
 
@@ -154,7 +149,7 @@ class Question(Base):
         self.category = kwargs.get('category', "T")
 
     def __repr__(self):
-        return ('<Question id={} "{}">').format(self.q_id, self.title[:60])
+        return '<Question id={} "{}">'.format(self.q_id, self.title[:60])
 
 
     @classmethod
@@ -164,12 +159,9 @@ class Question(Base):
 
         """
 
-        msg, record = super(Question, cls).create(col='title',
-                                                  val=title,
-                                                  title=title,
-                                                  text=text,
-                                                  **kwargs)
-        print msg
+        msg, record = super().create(col='title', val=title,
+                                     title=title, text=text, **kwargs)
+        print(msg)
         return record
 
 
@@ -177,13 +169,13 @@ class Question(Base):
         """ Change selected title in DB. """
 
         if len(Question.get_record_objects(col='title', val=new_val)) > 0:
-            print "Question '{}' already exists.".format(new_val[:50])
+            print("Question '{}' already exists.").format(new_val[:50])
             return None
         else:
             self.title = new_val
             db.session.add(self)
             db.session.commit()
-            print "Question title changed!"
+            print("Question title changed!")
             return None
 
 
@@ -201,7 +193,7 @@ class Question(Base):
                 if y_or_n.lower() == 'y':
                     subj = Subject.create(new_subj)
                 else:
-                    print "Cannot add current subject; trying the next."
+                    print("Cannot add current subject; trying the next.")
                     continue
             else:
                 subj = subj[0]
@@ -223,7 +215,7 @@ class User(Base):
         self.u_id = u_id
 
     def __repr__(self):
-        return ('<User "{}">').format(self.u_id)
+        return '<User "{}">'.format(self.u_id)
 
 
     @classmethod
@@ -233,10 +225,8 @@ class User(Base):
 
         """
 
-        msg, record = super(User, cls).create(col='u_id',
-                                              val=u_id,
-                                              u_id=u_id)
-        print msg
+        msg, record = super().create(col='u_id', val=u_id, u_id=u_id)
+        print(msg)
         return record
 
 
@@ -244,13 +234,13 @@ class User(Base):
         """ Change selected u_id in DB. """
 
         if len(User.get_record_objects(col='u_id', val=new_val)) > 0:
-            print "User '{}' already exists.".format(new_val)
+            print("User '{}' already exists.").format(new_val)
             return None
         else:
             self.u_id = new_val
             db.session.add(self)
             db.session.commit()
-            print "User ID changed!"
+            print("User ID changed!")
             return None
 
 
@@ -278,22 +268,20 @@ class Score(Base):
         self.points = ''
 
     def __repr__(self):
-        return ('<Score u_id={} q_id={}>').format(self.u_id, self.q_id)
+        return '<Score u_id={} q_id={}>'.format(self.u_id, self.q_id)
 
 
     @classmethod
     def create(cls, u_id, q_id):
-        """ Inserts new record into the DB. Doesn't print success/failure
+        """ Inserts new record into the DB. Doesn't print(success/failure)
             message. Returns new object or None.
 
         """
 
         score_id = make_score_id(u_id, q_id)
-        msg, record = super(Score, cls).create(col='score_id',
-                                               val=score_id,
-                                               u_id=u_id,
-                                               q_id=q_id)
-        # don't print msg
+        msg, record = super().create(col='score_id', val=score_id,
+                                     u_id=u_id, q_id=q_id)
+        # don't print(msg)
         return record
 
 
@@ -318,7 +306,7 @@ class Score(Base):
         score.points += (str(new_points) + ",")
         db.session.add(score)
         db.session.commit()
-        print "Scores updated!"
+        print("Scores updated!")
 
         return None
 
@@ -369,7 +357,7 @@ def seed_subjects():
     for subj in subjects:
         Subject.create(subj.strip())
 
-    print "\n-- Finished seeding subjects. --\n"
+    print("\n-- Finished seeding subjects. --\n")
 
     return None
 
@@ -382,4 +370,4 @@ if __name__ == '__main__':
 
     # Connect to DB
     connect_to_db(app)
-    print "\n-- Working directly in database. Use Flask-SQLAlchemy syntax. --\n"
+    print("\n-- Working directly in database. Use Flask-SQLAlchemy syntax. --\n")
