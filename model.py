@@ -327,14 +327,16 @@ def make_score_id(u_id, q_id):
 ################################################################################
  ### Database Functions ###
 
-def connect_to_db(app):
-    """ Connect the database to a Flask app. """
+def has_database():
+    """ Uses subprocess to check if the PostreSQL DB exists. """
 
-    # Configure to use PostgreSQL database
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///cliijeopardy'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    db.app = app
-    db.init_app(app)
+    pass
+
+
+def create_database():
+    """ Uses subprocess to create DB. """
+
+    pass
 
 
 def seed_data():
@@ -360,6 +362,31 @@ def seed_subjects():
     print("\n-- Finished seeding subjects. --\n")
 
     return None
+
+
+def seed_questions():
+    """ Reads all .txt files in the /data/questions directory. """
+
+    # Define the path
+    target_dir = pathlib.Path('./data/questions')
+
+    # define the pattern
+    target_file_ext = "*.txt"
+
+    for file in target_dir.glob(target_file_ext):
+        print(file)
+
+    return None
+
+
+def connect_to_db(app):
+    """ Connect the database to a Flask app. """
+
+    # Configure to use PostgreSQL database
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///cliijeopardy'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    db.app = app
+    db.init_app(app)
 
 
 if __name__ == '__main__':
