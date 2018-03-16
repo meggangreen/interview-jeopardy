@@ -1,6 +1,7 @@
 """ ORM Models """
 
 from flask_sqlalchemy import SQLAlchemy
+import pathlib
 
 db = SQLAlchemy()
 
