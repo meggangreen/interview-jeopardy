@@ -1,4 +1,5 @@
 """ ORM Models """
+# !! STILL IN PY 2.7 !! #
 
 from flask_sqlalchemy import SQLAlchemy
 

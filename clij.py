@@ -27,6 +27,7 @@ connect_to_db(app)
 #   exit (q at any time)
 
 PROMPT = "(enter your {} or 'q' to quit) "  # 'User ID', 'points', etc
+UID_RE = re.compile(r'\w{1,8}')
 quitting = False
 q_msg = "Thank you! Goodbye! =D"
 
@@ -37,11 +38,8 @@ def analyze_input(input_s, input_t):
         quitting = True
         return None
 
-    if re.
-
-    sudo add-apt-repository ppa:deadsnakes/ppa
-sudo apt-get update
-sudo apt-get install python3.6
+    if input_t == 'uid':
+        if not UID_RE.fullmatch(input_s)
 
     return
 
@@ -51,7 +49,7 @@ def request_and_store_username():
 
     GREET = "Hello! I'm Alexa Trebec, the host of Command Line Interview Jeopardy."
     GREET += "\nI'm so glad you're here. =D"
-    print GREET
+    print(GREET)
 
     i = 0
     while i <= 3:
