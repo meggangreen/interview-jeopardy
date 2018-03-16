@@ -368,15 +368,27 @@ def seed_questions():
     """ Reads all .txt files in the /data/questions directory. """
 
     # Define the path
-    target_dir = pathlib.Path('./data/questions')
+    q_dir = pathlib.Path('./data/questions')
 
     # define the pattern
-    target_file_ext = "*.txt"
+    q_file_ext = "*.txt"
 
-    for file in target_dir.glob(target_file_ext):
-        print(file)
+    for q_file in q_dir.glob(q_file_ext):
+        if q_file.name == 'qtest.txt':
+            continue
+        q_attrs, q_subjs = parse_question_file(q_file)
+        curr_q = Question.create(q_attrs)
+        if curr_q:
+            curr_q.add_subjects(q_subjs)
 
-    return None
+    return q_file
+
+
+def parse_question_file(q_file):
+    """ Returns attrs dict and subjects list for making Question. """
+
+    pass
+    # return (q_attrs, q_subjs)
 
 
 def connect_to_db(app):
