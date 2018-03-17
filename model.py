@@ -367,7 +367,7 @@ def seed_subjects():
     return None
 
 
-def seed_questions():
+def seed_questions_qsubjs():
     """ Reads all .txt files in the /data/questions directory.
 
         Code sampled from http://stackabuse.com/python-list-files-in-a-directory/
@@ -375,33 +375,25 @@ def seed_questions():
     """
 
     # Define the path
-    q_dir = pathlib.Path('./data/questions')
+    file_dir = pathlib.Path('./data/questions')
 
-    # define the pattern
-    q_file_ext = "*.txt"
-
-    for q_file in q_dir.glob(q_file_ext):
-        if q_file.name == 'qtest.txt':
+    for file in file_dir.glob('*.txt'):
+        if file.name == '_template.txt':
             continue
-        q_attrs, q_subjs = parse_question_file(q_file)
-        curr_q = Question.create(q_attrs)
-        if curr_q:
-            curr_q.add_subjects(q_subjs)
+        attrs, subjs = parse_question_file(file)
+        new_question = Question.create(attrs)
+        if new_question:
+            new_question.add_subjects(subjs)
 
-    return q_file
+    return None  # file
 
 
-def parse_question_file(q_file):
+def parse_question_file(file):
     """ Returns attrs dict and subjects list for making Question. """
 
-    q_attrs_set = set(['TITLE',
-                       'TEXT',
-                       'DIFFICULTY',
-                       'DURATIONS',
-                       'CATEGORY',
-                       'ANSWER'])
+    attrs_set = set([attr.upper() for attr in Question.__table__.columns.keys()])
 
-    # return (q_attrs, q_subjs)
+    # return (attrs, subjs)
 
 
 def connect_to_db(app):
