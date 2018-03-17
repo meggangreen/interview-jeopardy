@@ -2,6 +2,7 @@
 
 from flask_sqlalchemy import SQLAlchemy
 import pathlib
+import re
 
 db = SQLAlchemy()
 
@@ -144,6 +145,7 @@ class Question(Base):
                                backref=db.backref('questions', order_by=q_id))
 
     def __init__(self, title, text, **kwargs):
+        import pdb; pdb.set_trace()
         self.title = title
         self.text = text
         self.difficulty = kwargs.get('difficulty', 2)
@@ -190,9 +192,9 @@ class Question(Base):
             # Get Subject from DB
             subj = Subject.get_record_objects(col='title', val=new_subj)
             if not subj:
-                y_or_n = raw_input("Subject '{}' does not exist. "
-                                   .format(new_subj) +
-                                   "Do you want to add it? (y/n) ")
+                y_or_n = input("Subject '{}' does not exist. "
+                               .format(new_subj) +
+                               "Do you want to add it? (y/n) ")
                 if y_or_n.lower() == 'y':
                     subj = Subject.create(new_subj)
                 else:
@@ -374,26 +376,57 @@ def seed_questions_qsubjs():
 
     """
 
+    # Get set of class attributes
+    attrs_set = set([attr.upper() for attr in Question.__table__.columns.keys()])
+
     # Define the path
     file_dir = pathlib.Path('./data/questions')
 
     for file in file_dir.glob('*.txt'):
-        if file.name == '_template.txt':
-            continue
-        attrs, subjs = parse_question_file(file)
-        new_question = Question.create(attrs)
+        # if file.name == '_template.txt':
+        #     continue
+        title, text, attrs, subjs = parse_question_file(file, attrs_set)
+        new_question = Question.create(title, text, attrs)
         if new_question:
             new_question.add_subjects(subjs)
 
     return None  # file
 
 
-def parse_question_file(file):
-    """ Returns attrs dict and subjects list for making Question. """
+def parse_question_file(file, attrs_set):
+    """ Returns 'attrs' dict and 'subjs' list for making Question. 'subjects' is
+        a special attribute not included in 'attrs_set'.
 
-    attrs_set = set([attr.upper() for attr in Question.__table__.columns.keys()])
+    """
 
-    # return (attrs, subjs)
+    title = None
+    text = None
+    attrs = {}
+    subjs = []
+
+    with open(file) as f:
+        lines = f.readlines()
+
+    # Looks line-by-line for matching class attributes
+    # Only 'text' and 'answer' attrs are permitted multi-line values
+    # Many params are hard-coded and will need to be changed with table schema
+    for line in lines:
+        mobj = QATTR_RE.match(line)
+        if mobj and mobj.group(0) == 'SUBJECTS':
+            attr = mobj.group(0).lower()
+            subjs = [subj.strip() for subj in line[len(attr)+2:].split(',')]
+        elif mobj and mobj.group(0) in attrs_set:
+            attr = mobj.group(0).lower()
+            val = line[len(attr)+2:].strip()
+            attrs[attr] = val
+        elif attr in ['text', 'answer']:
+            val += '\n' + line.strip()
+            attrs[attr] = val
+
+    title = attrs.get('title')
+    text = attrs.get('text')
+
+    return (title, text, attrs, subjs)
 
 
 def connect_to_db(app):
@@ -414,4 +447,8 @@ if __name__ == '__main__':
 
     # Connect to DB
     connect_to_db(app)
+    db.create_all()  # does nothing to already created tables
     print("\n-- Working directly in database. Use Flask-SQLAlchemy syntax. --\n")
+
+    # Set constants
+    QATTR_RE = re.compile(r'[A-Z]{4,10}(?=:)')  # 4 to 10 A-Z chars, then ':'
