@@ -145,7 +145,6 @@ class Question(Base):
                                backref=db.backref('questions', order_by=q_id))
 
     def __init__(self, title, text, **kwargs):
-        import pdb; pdb.set_trace()
         self.title = title
         self.text = text
         self.difficulty = kwargs.get('difficulty', 2)
