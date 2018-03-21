@@ -7,13 +7,13 @@ class ModelHelperFuncsTests(UT.TestCase):
     def test_make_qs_id(self):
         """ Returns integer. """
 
-        assert make_qs_id(1, 1) == 11
+        self.assertEqual(make_qs_id(1, 1), 11)
 
 
     def test_make_score_id(self):
         """ Returns concatenated string. """
 
-        assert make_score_id('username', 7) == 'username--7'
+        self.assertEqual(make_score_id('username', 7), 'username--7')
 
 
 class ModelClassMethods(UT.TestCase):
@@ -21,10 +21,17 @@ class ModelClassMethods(UT.TestCase):
     # create data and seed functions for clijtest
 
     def test_get_record_objects(self):
-        """ Returns a list. """
+        """ Returns a list based on a modified method of standard querying.
 
-        test_q = Question.query.get(1)
-        assert Question.get_record_objects(col='q_id', val=1) == [test_q]
+            We leave it to Flask-SQLAlchemy and SQLAlchemy teams to ensure their
+            products work. We test that our modified query gets the same record
+            object as the regular query.
+
+        """
+
+        u_id = "default"
+        u_obj = User.query.get(u_id)
+        self.assertEqual(User.get_record_objects(col='u_id', val=u_id), [u_obj])
 
 
 
@@ -35,7 +42,7 @@ if __name__ == '__main__':
     # Start Flask app
     from flask import Flask
     app = Flask(__name__)
-    app.config['TESTING'] = True  # Shows verbose debugging
+    app.config['TESTING'] = True  # Shows verbose DB error messages
 
     # Connect to DB
     connect_to_db(app)
