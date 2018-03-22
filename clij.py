@@ -3,6 +3,7 @@
 from flask import Flask
 import re
 from model import *
+from classes import *
 
 # Functions:
 # [ ]start

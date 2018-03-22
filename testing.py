@@ -1,9 +1,7 @@
-################################################################################
-### Testing Module ###
+""" Testing Module """
+
 # Tests Model and CLIJ modules -- assumes Flask-SQLAlchemy and SQLAlchemy teams
 # have ensured their products work.
-#
-################################################################################
 
 import unittest as UT
 from model import *
@@ -70,5 +68,4 @@ class ModelQuestionMethods(UT.TestCase):
 
 
 if __name__ == '__main__':
-
     UT.main()
