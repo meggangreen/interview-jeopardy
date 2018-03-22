@@ -74,8 +74,8 @@ def analyze_input(input_string, input_type):
 def greet_user():
     """ Greets user. """
 
-    G_MSG = "Hello! I'm Alexa Trebec, host of Command Line Interview Jeopardy."
-    G_MSG += "\nI'm so glad you're here. =D"
+    G_MSG = ("Hi! I'm Alexa Trebeca, host of Command Line Interview Jeopardy." +
+             "\nI'm so glad you're here. =D")
     print('\n\n' + G_MSG)
     return None
 
@@ -104,14 +104,10 @@ def get_username():
             UID = 'q'
 
         success = analyze_input(UID, 'uid')
-        if success is None:
-            return None
-        elif success is True:
-            break
-        else:
+        if success is False:
             i += 1
-
-    return UID
+        else:
+            return UID
 
 
 def is_continue():
@@ -119,7 +115,7 @@ def is_continue():
 
     # Future versions could analyze game's questions' scores for 'good job!' msg
 
-    if game_session['GNUM'] == 2:
+    if game_session['GNUM'] == 10:
         game_session['QUIT'] = True
         print("\nWow {}! That was so good! ".format(game_session['USER']) +
               "I've got to run, but let's play again soon, okay?")
