@@ -15,7 +15,7 @@ class Base(db.Model):
     __abstract__ = True
 
     @classmethod
-    def get_record_objects(cls, col=None, val=None):
+    def get_records(cls, col=None, val=None):
         """ Given 'col' as column name and 'val' as entire and exact value to
             search, checks if any matching record is in DB. Returns list of objs.
 
@@ -33,11 +33,12 @@ class Base(db.Model):
             new object or None.
 
         """
+
         class_name = cls.__name__
         if not val:
             msg = "Cannot create {} with empty value. You submitted '{}'."
             record = None
-        elif len(cls.get_record_objects(col, val)) == 0:
+        elif len(cls.get_records(col, val)) == 0:
             new_item = cls(**kwargs)
             db.session.add(new_item)
             db.session.commit()
@@ -81,7 +82,7 @@ class Subject(Base):
     def edit(self, new_val=None):
         """ Change selected title in DB. """
 
-        if len(Subject.get_record_objects(col='title', val=new_val)) > 0:
+        if len(Subject.get_records(col='title', val=new_val)) > 0:
             print("Subject '{}' already exists.").format(new_val)
             return None
         else:
@@ -90,6 +91,11 @@ class Subject(Base):
             db.session.commit()
             print("Subject text changed!")
             return None
+
+
+    def remove(self):
+        """ Remove subject and associated Q_Subjs from DB. """
+        pass
 
 
 class Q_Subj(Base):
@@ -172,7 +178,7 @@ class Question(Base):
     def edit(self, new_val=None):
         """ Change selected title in DB. """
 
-        if len(Question.get_record_objects(col='title', val=new_val)) > 0:
+        if len(Question.get_records(col='title', val=new_val)) > 0:
             print("Question '{}' already exists.").format(new_val[:50])
             return None
         else:
@@ -189,7 +195,7 @@ class Question(Base):
         for new_subj in new_subjs:
 
             # Get Subject from DB
-            subj = Subject.get_record_objects(col='title', val=new_subj)
+            subj = Subject.get_records(col='title', val=new_subj)
             if not subj:
                 y_or_n = input("Subject '{}' does not exist. "
                                .format(new_subj) +
@@ -205,6 +211,11 @@ class Question(Base):
             Q_Subj.create(self.q_id, subj.s_id)
 
         return None
+
+
+    def remove_subjects(self, subjs=[]):
+        """ Remove Q_Subj link for each subject in the list. """
+        pass
 
 
 class User(Base):
@@ -237,7 +248,7 @@ class User(Base):
     def edit(self, new_val=None):
         """ Change selected u_id in DB. """
 
-        if len(User.get_record_objects(col='u_id', val=new_val)) > 0:
+        if len(User.get_records(col='u_id', val=new_val)) > 0:
             print("User '{}' already exists.").format(new_val)
             return None
         else:
@@ -246,6 +257,11 @@ class User(Base):
             db.session.commit()
             print("User ID changed!")
             return None
+
+
+    def remove(self):
+        """ Remove user and associated scores from DB. """
+        pass
 
 
 class Score(Base):
@@ -300,7 +316,7 @@ class Score(Base):
             return None
 
         score_id = make_score_id(u_id, q_id)
-        score = cls.get_record_objects(col='score_id', val=score_id)
+        score = cls.get_records(col='score_id', val=score_id)
 
         if not score:
             msg, score = cls.create(u_id=u_id, q_id=q_id)
@@ -313,6 +329,12 @@ class Score(Base):
         print("Scores updated!")
 
         return None
+
+
+    @classmethod
+    def clear_scores(cls, u_id=None, q_id=None):
+        """ Remove scores from DB. """
+        pass
 
 
 ################################################################################
@@ -376,7 +398,7 @@ def seed_questions_qsubjs():
     """
 
     # Get set of class attributes
-    attrs_set = set([attr.upper() for attr in Question.__table__.columns.keys()])
+    attr_keys = [attr.upper() for attr in Question.__table__.columns.keys()]
 
     # Define the path
     file_dir = pathlib.Path('./data/questions')
@@ -384,7 +406,7 @@ def seed_questions_qsubjs():
     for file in file_dir.glob('*.txt'):
         # if file.name == '_template.txt':
         #     continue
-        title, text, attrs, subjs = parse_question_file(file, attrs_set)
+        title, text, attrs, subjs = parse_question_file(file, attr_keys)
         new_question = Question.create(title, text, attrs)
         if new_question:
             new_question.add_subjects(subjs)
@@ -392,9 +414,9 @@ def seed_questions_qsubjs():
     return None  # file
 
 
-def parse_question_file(file, attrs_set):
+def parse_question_file(file, attr_keys):
     """ Returns 'attrs' dict and 'subjs' list for making Question. 'subjects' is
-        a special attribute not included in 'attrs_set'.
+        a special attribute not included in 'attr_keys'.
 
     """
 
@@ -410,12 +432,12 @@ def parse_question_file(file, attrs_set):
     # Only 'text' and 'answer' attrs are permitted multi-line values
     # Many params are hard-coded and will need to be changed with table schema
     for line in lines:
-        mobj = QATTR_RE.match(line)
-        if mobj and mobj.group(0) == 'SUBJECTS':
-            attr = mobj.group(0).lower()
+        match_obj = QATTR_RE.match(line)
+        if match_obj and match_obj.group(0) == 'SUBJECTS':
+            attr = match_obj.group(0).lower()
             subjs = [subj.strip() for subj in line[len(attr)+2:].split(',')]
-        elif mobj and mobj.group(0) in attrs_set:
-            attr = mobj.group(0).lower()
+        elif match_obj and match_obj.group(0) in attr_keys:
+            attr = match_obj.group(0).lower()
             val = line[len(attr)+2:].strip()
             attrs[attr] = val
         elif attr in ['text', 'answer']:
@@ -450,4 +472,4 @@ if __name__ == '__main__':
     print("\n-- Working directly in database. Use Flask-SQLAlchemy syntax. --\n")
 
     # Set constants
-    QATTR_RE = re.compile(r'[A-Z]{4,10}(?=:)')  # 4 to 10 A-Z chars, then ':'
+    QATTR_RE = re.compile(r'^[A-Z]{4,10}(?=:)')  # 4 to 10 A-Z chars, then ':'

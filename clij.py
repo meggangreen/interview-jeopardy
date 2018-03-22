@@ -1,8 +1,8 @@
 """ App Manager """
 
 from flask import Flask
-from model import *
 import re
+from model import *
 
 # Functions:
 # [ ]start
@@ -109,8 +109,8 @@ if __name__ == '__main__':
     connect_to_db(app)
 
     # Regular Expression comparisons for user input
-    UID_RE = re.compile(r'\w{1,8}')
-    PTS_RE = re.compile(r'[1-5]')
+    UID_RE = re.compile(r'^\w{1,8}$')
+    PTS_RE = re.compile(r'^[1-5]$')
 
     # Standard prompt hint for user input
     PROMPT = "\n(enter your {} or 'q' to quit) "  # 'User ID', 'points', etc
