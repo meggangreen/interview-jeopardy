@@ -28,16 +28,13 @@ def run_session():
 
     # Clear Console
 
-    # Show greeting for first game
     greet_user()
 
-    # if not game_session['USER']:
     game_session['USER'] = get_username()
     if not game_session['QUIT']:
         User.create(game_session['USER'])
 
     while not game_session['QUIT']:
-        # Clear Console
         game_session['GNUM'] += 1
         print("\n\n-- Instantiate Game " + str(game_session['GNUM']) + " --")
         # game = Game(id=game_session['GNUM'])  # instantiation gets question set
@@ -45,10 +42,7 @@ def run_session():
         # game.play()
         if game_session['QUIT']:
             break
-        # print("-- To Continue or Not To Continue --")
         is_continue()
-        # if game_session['GNUM'] > 2:
-        #     game_session['QUIT'] = True
 
     dismiss_user()
 
@@ -121,14 +115,19 @@ def get_username():
 
 
 def is_continue():
-    """ Ask user if they want to continue. """
+    """ Ask user if they want to continue. Force quits if game count is 10. """
 
     # Future versions could analyze game's questions' scores for 'good job!' msg
 
-    usermsg = "\nCould we play again, {}? ".format(game_session['USER'])
-    other = input(usermsg + PROMPT.format("'y' to continue"))
-
-    analyze_input(other, 'other')
+    if game_session['GNUM'] == 2:
+        game_session['QUIT'] = True
+        print("\nWow {}! That was so good! ".format(game_session['USER']) +
+              "I've got to run, but let's play again soon, okay?")
+    else:
+        usermsg = ("\nThat was fun! =D Could we play again, {}? "
+                   .format(game_session['USER']))
+        other = input(usermsg + PROMPT.format("'y' to continue"))
+        analyze_input(other, 'other')
 
     return None
 
