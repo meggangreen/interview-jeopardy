@@ -45,10 +45,10 @@ def run_session():
         # game.play()
         if game_session['QUIT']:
             break
-        print("-- To Continue or Not To Continue --")
-        # is_continue()
-        if game_session['GNUM'] > 2:
-            game_session['QUIT'] = True
+        # print("-- To Continue or Not To Continue --")
+        is_continue()
+        # if game_session['GNUM'] > 2:
+        #     game_session['QUIT'] = True
 
     dismiss_user()
 
@@ -70,6 +70,9 @@ def analyze_input(input_string, input_type):
 
     if input_type == 'pts':
         return PTS_RE.fullmatch(input_string) is not None
+
+    if input_type == 'other':
+        return None
 
     return None
 
@@ -98,10 +101,10 @@ def get_username():
     while i <= 3:
         if i == 0:
             usermsg = "\nWhat may I call you? "
-            UID = input(usermsg + PROMPT.format('User ID'))
+            UID = input(usermsg + PROMPT.format('your User ID'))
         elif 0 < i < 3:
             usermsg = "\nOops! Please enter up to 8 ASCII alphanumeric characters."
-            UID = input(usermsg + PROMPT.format('User ID'))
+            UID = input(usermsg + PROMPT.format('your User ID'))
         else:
             print("\nI'm sorry you're having trouble. Try again soon.")
             UID = 'q'
@@ -115,6 +118,19 @@ def get_username():
             i += 1
 
     return UID
+
+
+def is_continue():
+    """ Ask user if they want to continue. """
+
+    # Future versions could analyze game's questions' scores for 'good job!' msg
+
+    usermsg = "\nCould we play again, {}? ".format(game_session['USER'])
+    other = input(usermsg + PROMPT.format("'y' to continue"))
+
+    analyze_input(other, 'other')
+
+    return None
 
 
 ################################################################################
@@ -132,7 +148,7 @@ if __name__ == '__main__':
     PTS_RE = re.compile(r'^[1-5]$')
 
     # Standard prompt hint for user input
-    PROMPT = "\n(enter your {} or 'q' to quit) "  # 'User ID', 'points', etc
+    PROMPT = "\n(enter {} or 'q' to quit) "  # 'your User ID', 'the points', etc
 
     # Program runs only while quitting is False
     # global _quit
