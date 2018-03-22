@@ -458,6 +458,7 @@ def connect_to_db(app):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.app = app
     db.init_app(app)
+    db.create_all()  # does nothing to already created tables
 
 
 if __name__ == '__main__':
@@ -468,7 +469,6 @@ if __name__ == '__main__':
 
     # Connect to DB
     connect_to_db(app)
-    db.create_all()  # does nothing to already created tables
     print("\n-- Working directly in database. Use Flask-SQLAlchemy syntax. --\n")
 
     # Set constants

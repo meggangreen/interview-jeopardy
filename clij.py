@@ -6,22 +6,22 @@ from model import *
 
 # Functions:
 # [ ]start
-#   [-]greet
-#   [-]enter username
+#   [x]greet
+#   [x]enter username
 #   [ ]check if db exists
 #       [ ]no:
 #           [ ]create
 #            OR
 #           [ ]quit
-#   [-]welcome user
-#       [-]user.create if necessary
+#   [x]welcome user
+#       [x]user.create if necessary
 #   [ ]rules
 #       [ ]q at any time
-#   [ ]while play == yes
+#   [x]while quit is false
 #       [ ]play game -- game is a class, questions are a class (already)
 #           [ ]GAME STEPS
-#           [ ]play again? change user?
-#   [-]exit (q at any time)
+#       [x]play again?
+#   [x]exit (q at any time)
 
 def run_session():
     """ Game manager. """
@@ -111,7 +111,7 @@ def get_username():
 
 
 def is_continue():
-    """ Ask user if they want to continue. Force quits if game count is 10. """
+    """ Asks user if they want to continue. Force quits if game count is 10. """
 
     # Future versions could analyze game's questions' scores for 'good job!' msg
 
@@ -135,7 +135,6 @@ if __name__ == '__main__':
 
     # Start Flask app and connect to DB
     app = Flask(__name__)
-    # app.secret_key = "Command Line Interview Jeopardy"
     connect_to_db(app)
 
     # Regular Expression comparisons for user input
@@ -145,8 +144,7 @@ if __name__ == '__main__':
     # Standard prompt hint for user input
     PROMPT = "\n(enter {} or 'q' to quit) "  # 'your User ID', 'the points', etc
 
-    # Program runs only while quitting is False
-    # global _quit
+    # Program runs only while 'QUIT' is False and 'GNUM' <= 10
     game_session = {'QUIT': False,
                     'USER': None,
                     'GNUM': 0}

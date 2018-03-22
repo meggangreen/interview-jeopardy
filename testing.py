@@ -12,7 +12,13 @@ from clij import *
 # create database and seed functions for clijtest
 def setUpModule():
     """ Seed test database. """
-    pass
+
+    # Start Flask app
+    app = Flask(__name__)
+    app.config['TESTING'] = True  # Shows verbose Flask error messages
+
+    # Connect to DB
+    connect_to_db(app)
 
 
 def tearDownModule():
@@ -64,13 +70,5 @@ class ModelQuestionMethods(UT.TestCase):
 
 
 if __name__ == '__main__':
-
-    # Start Flask app
-    app = Flask(__name__)
-    app.config['TESTING'] = True  # Shows verbose Flask error messages
-
-    # Connect to DB
-    connect_to_db(app)
-    db.create_all()  # does nothing to already created tables
 
     UT.main()
