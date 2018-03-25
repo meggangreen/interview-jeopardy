@@ -38,7 +38,7 @@ def run_session():
     while not game_session['QUIT']:
         game_session['GNUM'] += 1
         print("\n\n-- Instantiate Game " + str(game_session['GNUM']) + " --")
-        # game = Game(id=game_session['GNUM'])  # instantiation gets question set
+        # game = Game(g_id=game_session['GNUM'])  # instantiation gets question set
         print("-- Start Game with 'game.play' --")
         # game.play()
         if game_session['QUIT']:
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     # Program runs only while 'QUIT' is False and 'GNUM' <= 10
     game_session = {'QUIT': False,
                     'USER': None,
-                    'GNUM': 0}
+                    'GNUM': -1}
 
     # Start game session
     run_session()
