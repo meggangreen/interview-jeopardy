@@ -17,7 +17,7 @@ from classes import *
 #   [x]welcome user
 #       [x]user.create if necessary
 #   [ ]rules
-#       [ ]q at any time
+#       [x]q at any time
 #   [x]while quit is false
 #       [ ]play game -- game is a class, questions are a class (already)
 #           [ ]GAME STEPS
@@ -38,12 +38,12 @@ def run_session():
     while not game_session['QUIT']:
         game_session['GNUM'] += 1
         print("\n\n-- Instantiate Game " + str(game_session['GNUM']) + " --")
-        # game = Game(g_id=game_session['GNUM'])  # instantiation gets question set
+        game = Game(g_id=game_session['GNUM'])  # instantiation gets question set
         print("-- Start Game with 'game.play' --")
         # game.play()
         if game_session['QUIT']:
             break
-        is_continue()
+        is_play_again()
 
     dismiss_user()
 
@@ -111,7 +111,7 @@ def get_username():
             return UID
 
 
-def is_continue():
+def is_play_again():
     """ Asks user if they want to continue. Force quits if game count is 10. """
 
     # Future versions could analyze game's questions' scores for 'good job!' msg

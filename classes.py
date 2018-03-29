@@ -2,6 +2,7 @@
 
 from random import sample
 from model import *
+from clij import analyze_input
 
 class Game(object):
     """ Game class. """
@@ -20,13 +21,26 @@ class Game(object):
         self._g_id = g_id
 
         # Get question sets from database
-        self._behavioral_q_set = QuestionSet(category='B')
-        self._theoretical_q_set = QuestionSet(category='T')
-        self._coding_q_set = QuestionSet(category='C')
+        self._question_sets = [QuestionSet(category='B'),
+                               QuestionSet(category='T'),
+                               QuestionSet(category='C')]
 
 
     def __repr__(self):
         return '<Game g_id={}>'.format(self._g_id)
+
+
+    def _play(self):
+        """  """
+
+        print("\nLet's get started!")
+
+        for q_set in self._question_sets:
+
+            if not game_session['QUIT']:
+                q_set._ask()
+
+        return None
 
 
 class QuestionSet(object):
@@ -38,7 +52,7 @@ class QuestionSet(object):
             @param q_rules:    A tuple of the total number of difficulty points
                                and minimum quantities of easy, medium, and hard
                                questions.
-                               IE: ( total, easy_count, med_count, hard_count )
+                               IE: ( total, easy_min, med_min, hard_min )
                                EG: (6, 1, 1, 0) => 6 total difficulty points,
                                                    at least 1 easy question,
                                                    at least 1 medium question,
@@ -47,16 +61,22 @@ class QuestionSet(object):
 
         """
 
+        if category == 'B':
+            self._name = "Behavioral"
+        elif category == 'T':
+            self._name = "Theoretical"
+        elif category == 'C':
+            self._name == "Coding"
         self._category = category
         self._q_rules = self._get_question_rules()
-        self._questions = self._get_questions()
+        self._questions = self._get_all_questions()
 
 
     def __repr__(self):
-        return '<QuestionSet category={}>'.format(self._category)
+        return '<QuestionSet {}>'.format(self._name)
 
 
-    def _get_questions(self):
+    def _get_all_questions(self):
         """ Get set of questions for a particular category. Each category has
             difficulty and quantity rules.
 
@@ -118,3 +138,34 @@ class QuestionSet(object):
             q_rules = (9, 2, 2, 0)
 
         return q_rules
+
+
+    def _ask(self):
+        """  """
+
+        ready = input("Are you ready for the {} questions?"
+                      .format(self._name) +
+                      PROMPT.format("'y' to continue, 's' to skip,"))
+        analyze_input(ready, other)
+
+        if not game_session['QUIT']:
+            for question in self._questions:
+                if question.difficulty == 1:
+                    first = question
+                    self._questions.remove(first)
+                    break
+
+        while not game_session['QUIT'] and self._questions:
+            if first:
+                curr_q = first
+                del first
+            else:
+                curr_q = self._questions.pop()
+            curr_q._ask()
+            points = input("Evaluate your answer and enter your score." +
+                           PROMPT.format("your points 1 to 5"))
+            if
+            Score.add_points()
+
+
+
