@@ -1,6 +1,6 @@
 """ Non-DB Python Classes """
 
-from random import choice, sample
+from random import sample
 from model import *
 
 class Game(object):
@@ -33,9 +33,23 @@ class QuestionSet(object):
     """ Question set. """
 
     def __init__(self, category):
+        """ Initializes a question set.
+
+            @param q_rules:    A tuple of the total number of difficulty points
+                               and minimum quantities of easy, medium, and hard
+                               questions.
+                               IE: ( total, easy_count, med_count, hard_count )
+                               EG: (6, 1, 1, 0) => 6 total difficulty points,
+                                                   at least 1 easy question,
+                                                   at least 1 medium question,
+                                                   no minimum of hard questions.
+            @param questions:  The set of questions to be asked.
+
+        """
+
         self._category = category
         self._q_rules = self._get_question_rules()
-        self._questions = None  # self._get_questions()
+        self._questions = self._get_questions()
 
 
     def __repr__(self):
@@ -49,44 +63,19 @@ class QuestionSet(object):
         """
 
         q_set = set([])
-        remain, easy_count, med_count, hard_count = self._q_rules
-        category = self._category
+        q_pool = set([])
+        remain = self._q_rules[0]
 
-        easy_pool = set(Question.query
-                                .filter(Question.category == category,
-                                        Question.difficulty == 1)
-                                .all())
-        med_pool = set(Question.query
-                               .filter(Question.category == category,
-                                       Question.difficulty == 2)
-                               .all())
-        hard_pool = set(Question.query
-                                .filter(Question.category == category,
-                                        Question.difficulty == 3)
-                                .all())
+        # Where i is a difficulty level 1 to 3
+        for i in range(1,4):
+            quantity = self._q_rules[i]
+            d_using, d_pool = self._get_questions_by_difficulty(i, quantity)
+            q_set.update(d_using)
+            q_pool.update(d_pool)
+            remain -= i * len(d_using)
 
-        if easy_count > 0:
-            q_objs = sample(easy_pool, easy_count)
-            q_set.update(q_objs)
-            easy_pool.difference_update(q_objs)
-            remain -= 1 * easy_count
-
-        if med_count > 0:
-            q_objs = sample(med_pool, med_count)
-            q_set.update(q_objs)
-            med_pool.difference_update(q_objs)
-            remain -= 1 * med_count
-
-        if hard_count > 0:
-            q_objs = sample(hard_pool, hard_count)
-            q_set.update(q_objs)
-            hard_pool.difference_update(q_objs)
-            remain -= 1 * hard_count
-
-        # Combine all remaining questions into one pool
-        q_pool = easy_pool | med_pool | hard_pool
-
-        while remain > 0 and len(q_pool) > 0:
+        # Fill q_set from q_pool until no difficulty points remain
+        while remain > 0 and q_pool:
             q_obj = sample(q_pool, 1)[0]
             q_set.add(q_obj)
             q_pool.remove(q_obj)
@@ -95,11 +84,32 @@ class QuestionSet(object):
         return q_set
 
 
+    def _get_questions_by_difficulty(self, level, quantity):
+        """  """
+
+        q_pool = set(Question.query
+                             .filter(Question.category == self._category,
+                                     Question.difficulty == level)
+                             .all())
+
+        # Put minimum number of each type of question into q_using;
+        # remove selected questions from q_pool
+        # Skip if no question of category and difficulty exists;
+        # modify the count if not enough questions exist
+        if quantity > 0 and q_pool:
+            if len(q_pool) < quantity:
+                quantity = len(q_pool)
+            q_using = sample(q_pool, quantity)
+            q_pool.difference_update(q_using)
+        else:
+            q_using = []
+
+        return (q_using, q_pool)
+
+
     def _get_question_rules(self):
         """ Return tuple of question quantity rules. """
 
-        # Q Rules: ( total, easy_count, med_count, hard_count )
-        # eg: (6, 1, 1, 0) => 6 level value total, 1+ easy, 1+ medium, 0+ hard
         if self._category == 'B':
             q_rules = (6, 1, 1, 0)
         elif self._category == 'T':
